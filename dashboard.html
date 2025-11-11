@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User Dashboard | RentHub</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"> <!-- Keep Font Awesome for profile icon -->
+<style>
+body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  background: #f4f6f8;
+  display: flex;
+  height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 230px;
+  background: #2c3e50;
+  color: white;
+  padding-top: 20px;
+}
+.sidebar h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 24px;
+  color: white; /* Made brighter */
+  text-shadow: 0 0 5px rgba(255,255,255,0.7); /* Added subtle shadow */
+}
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+.sidebar ul li {
+  padding: 15px;
+}
+.sidebar ul li a {
+  color: white;
+  text-decoration: none;
+  display: block;
+}
+.sidebar ul li.active, .sidebar ul li:hover {
+  background: #34495e;
+}
+
+/* Main content */
+.main-content {
+  flex: 1;
+  padding: 30px;
+  overflow-y: auto;
+}
+h2 {
+  margin-bottom: 15px;
+  color: #333;
+  text-align: left; /* Changed to left for general H2 */
+  /* Removed display, align-items, justify-content, gap for general H2 */
+}
+
+#dashboard h2 {
+  text-align: center; /* Specific centering for Dashboard H2 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.content-section {
+  display: none;
+}
+.content-section.active {
+  display: block;
+}
+
+/* Profile Info - Specific styles from the image */
+#dashboard .profile-info {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  max-width: 500px; /* Adjusted width */
+  margin: 20px auto; /* Centered */
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 30px;
+}
+
+.profile-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.profile-row label {
+  width: 160px;
+  font-weight: 600;
+  color: #0d47a1;
+  font-size: 18px;
+  text-align: right;
+}
+
+.profile-row .input-box {
+  flex: 1;
+  background: #f4f8ff;
+  border: 2px solid #d0e2ff;
+  border-radius: 10px;
+  padding: 10px 15px;
+  font-size: 17px;
+  color: #333;
+  transition: 0.3s;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.profile-row .input-box:hover {
+  border-color: #90caf9;
+  background: #fff;
+}
+
+.logout-btn {
+  margin-top: 40px;
+  background: linear-gradient(90deg, #e53935, #c62828);
+  color: white;
+  border: none;
+  padding: 14px 40px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: 600;
+  transition: 0.3s;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.logout-btn:hover {
+  transform: scale(1.05);
+  background: linear-gradient(90deg, #c62828, #b71c1c);
+}
+
+/* Original styles for rental cards */
+.rental-card {
+  background: white;
+  padding: 15px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  position: relative;
+  padding-right: 120px; /* ensure space for top-right button */
+}
+.rental-card img {
+  max-width: 120px;
+  max-height: 80px;
+  margin-right: 10px;
+  border-radius: 6px;
+}
+.rental-details {
+  display: flex;
+  align-items: flex-start;
+}
+.rental-info p {
+  margin: 2px 0;
+}
+
+/* New status styles */
+.rental-info .status {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 5px;
+  font-weight: 500;
+  color: white;
+  font-size: 0.9em;
+}
+
+.rental-info .status-on-processing {
+  background-color: #ffc107; /* Amber/Orange for on-processing */
+}
+
+.rental-info .status-rented {
+  background-color: #007bff; /* Blue for rented */
+}
+
+.rental-info .status-completed {
+  background-color: #28a745; /* Green for completed */
+}
+
+.rental-info .status-active {
+  background-color: #6c757d; /* Grey for active/available */
+}
+
+.return-btn {
+  background-color: #28a745; /* Green */
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9em;
+  font-weight: 500;
+  margin-top: 10px;
+  transition: background-color 0.3s ease;
+}
+
+.return-btn:hover {
+  background-color: #218838;
+}
+
+/* New message card styles */
+.message-card {
+  background: #e9f7ef; /* Light green background for confirmed messages */
+  border-left: 5px solid #28a745; /* Green border */
+  padding: 15px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.message-card p {
+  margin: 0;
+  font-size: 1rem;
+  color: #333;
+}
+
+.message-card span {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+#messagesList p {
+  text-align: center;
+  padding: 20px;
+  font-size: 1.1rem;
+  color: #666;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 8px;
+}
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <h2>RentHub</h2>
+  <ul>
+    <li class="active"><a href="#dashboard">🏠 Dashboard</a></li>
+    <li><a href="takerent.html">📦 Take on Rent</a></li>
+    <li><a href="#current-rentals">🕒 Current Rentals</a></li>
+    <li><a href="#rental-history">📜 Rental History</a></li>
+    <li><a href="#messages">💬 Messages</a></li>
+    <li><a href="profile.html">🔙 Back to Hub</a></li>
+  </ul>
+</div>
+
+<!-- Main Content -->
+<div class="main-content">
+
+  <!-- Dashboard / Profile -->
+  <div id="dashboard" class="content-section active">
+    <h2><i class="fas fa-user-circle"></i> Profile Information</h2> <!-- Keep this icon for Profile Information -->
+    <div class="profile-info">
+      <div class="profile-row"><label>Name :</label><div class="input-box" id="profileName"></div></div>
+      <div class="profile-row"><label>Email :</label><div class="input-box" id="profileEmail"></div></div>
+      <div class="profile-row"><label>Phone :</label><div class="input-box" id="profilePhone"></div></div>
+      <div class="profile-row"><label>Member Since :</label><div class="input-box" id="profileDate"></div></div>
+    </div>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </div>
+
+  <!-- Current Rentals -->
+  <div id="current-rentals" class="content-section">
+    <h2>🕒 Current Rentals</h2>
+    <div id="currentRentalsList">Loading...</div>
+  </div>
+
+  <!-- Rental History -->
+  <div id="rental-history" class="content-section">
+    <h2>📜 Rental History</h2>
+    <div id="rentalHistoryList">Loading...</div>
+  </div>
+
+  <!-- Messages -->
+  <div id="messages" class="content-section">
+    <h2>💬 Messages</h2>
+    <div id="messagesList"><p>No messages</p></div> <!-- Re-added original content -->
+  </div>
+
+</div>
+
+<script>
+// Sidebar navigation
+const links = document.querySelectorAll('.sidebar ul li a');
+const sections = document.querySelectorAll('.content-section');
+// REMOVED: const notificationsListDiv = document.getElementById('notificationsList');
+
+// New message card styles
+const style = document.createElement('style');
+style.textContent = `
+  .message-card {
+    background: #e9f7ef; /* Light green background for confirmed messages */
+    border-left: 5px solid #28a745; /* Green border */
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .message-card p {
+    margin: 0;
+    font-size: 1rem;
+    color: #333;
+  }
+
+  .message-card span {
+    font-size: 0.85rem;
+    color: #666;
+  }
+
+  #messagesList p {
+    text-align: center;
+    padding: 20px;
+    font-size: 1.1rem;
+    color: #666;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 8px;
+  }
+`;
+document.head.appendChild(style);
+
+links.forEach(link => {
+  link.addEventListener('click', function(e) {
+    const href = this.getAttribute('href');
+    if (href.endsWith(".html")) return;
+    e.preventDefault();
+    links.forEach(l => l.parentElement.classList.remove('active'));
+    this.parentElement.classList.add('active');
+    sections.forEach(section => section.classList.remove('active'));
+    const targetId = href.substring(1);
+    document.getElementById(targetId).classList.add('active');
+
+    if (targetId === 'messages') { fetchMessages(); } // Call fetchMessages when messages section is active
+  });
+});
+
+async function logout() {
+  await fetch('/api/logout', { credentials: 'include' });
+  alert("You have been logged out successfully!");
+  window.location.href = "sign.html";
+}
+
+const messagesListDiv = document.getElementById('messagesList');
+
+async function fetchMessages() {
+  try {
+    const res = await fetch('/api/notifications', { credentials: 'include' });
+    const data = await res.json();
+
+    if (data.success && data.notifications.length > 0) {
+      const confirmedMessages = data.notifications.filter(n => n.message.includes('has been confirmed by the owner!'));
+      if (confirmedMessages.length > 0) {
+        messagesListDiv.innerHTML = confirmedMessages.map(n => `
+          <div class="message-card" data-notification-id="${n.id}">
+            <p>${n.message}</p>
+            <span>${new Date(n.createdAt).toLocaleString()}</span>
+          </div>
+        `).join('');
+
+        // Mark these messages as read after displaying them
+        for (const message of confirmedMessages) {
+          if (message.isRead === 0) { // Only mark as read if not already read
+            try {
+              await fetch(`/api/notifications/mark-read/${message.id}`, { method: 'PUT', credentials: 'include' });
+            } catch (err) {
+              console.error(`Error marking message ${message.id} as read:`, err);
+            }
+          }
+        }
+
+      } else {
+        messagesListDiv.innerHTML = '<p>No messages</p>';
+      }
+    } else {
+      messagesListDiv.innerHTML = '<p>No messages</p>';
+    }
+  } catch (err) {
+    console.error("Error fetching messages:", err);
+    messagesListDiv.innerHTML = '<p>Error loading messages.</p>';
+  }
+}
+
+// Load dashboard data
+async function loadDashboard() {
+  try {
+    const sessionRes = await fetch('/api/session', { credentials: 'include' });
+    const sessionData = await sessionRes.json();
+    if (!sessionData.loggedIn) {
+      alert("Please login first!");
+      window.location.href = "sign.html";
+      return;
+    }
+
+    const user = sessionData.user;
+    document.getElementById('profileName').textContent = user.fullname;
+    document.getElementById('profileEmail').textContent = user.email;
+    document.getElementById('profilePhone').textContent = user.phone || "-";
+    document.getElementById('profileDate').textContent =
+      user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "-"; // Ensure original date format
+
+    // Fetch rentals booked by the user
+    const bookedRes = await fetch('/api/rentals/booked', { credentials: 'include' });
+    const bookedData = await bookedRes.json();
+
+    // Fetch rentals given for rent by the user (history)
+    const ownedRes = await fetch('/api/rentals/history', { credentials: 'include' });
+    const ownedData = await ownedRes.json();
+
+    if (bookedData.success && ownedData.success) {
+      const currentRentals = bookedData.rentals.filter(r => r.status === "Rented" || r.status === "Active");
+      const historyRentals = bookedData.rentals.filter(r => r.status === "Returned" || r.status === "Completed");
+
+      function renderCurrentList(list) {
+        if (!list.length) return "<p>No rentals</p>";
+        return list.map(r => {
+          const imgTag = r.images.length ? `<img src="${r.images[0]}" alt="${r.itemTitle}">` : '';
+          return `
+            <div class="rental-card">
+              <div class="rental-details">
+                ${imgTag}
+                <div class="rental-info">
+                  <p><strong>${r.itemTitle}</strong></p>
+                  <p>Category: ${r.category}</p>
+                  <p>Owner: ${r.ownerName}</p>
+                  <p>Booked Duration: ${r.bookingDuration} ${r.bookingDurationType}</p>
+                  <p>Total Amount: ₹${r.bookingPrice}</p>
+                </div>
+                <div class="rental-actions">${(r.status === "Rented" || r.status === "Active") ? `<button class="return-btn" onclick="returnRental('${r.id}')">Return</button>` : ''}</div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      function renderHistoryList(list) {
+        if (!list.length) return "<p>No rentals</p>";
+        return list.map(r => {
+          const imgTag = r.images.length ? `<img src="${r.images[0]}" alt="${r.itemTitle}">` : '';
+          let statusText = r.status;
+          let statusClass = '';
+
+          if (r.status === "Pending") {
+            statusText = "On processing";
+            statusClass = "status-on-processing";
+          } else if (r.status === "Rented") {
+            statusClass = "status-rented";
+          } else if (r.status === "Returned") {
+            statusText = "Item has been returned";
+            statusClass = "status-completed";
+          } else if (r.status === "Active") {
+            statusClass = "status-active";
+          } else if (r.status === "Completed") {
+            statusText = "Completed";
+            statusClass = "status-completed";
+          }
+
+          return `
+            <div class="rental-card">
+              <div class="rental-details">
+                ${imgTag}
+                <div class="rental-info">
+                  <p><strong>${r.itemTitle}</strong></p>
+                  <p>Category: ${r.category}</p>
+                  <p>Owner: ${r.ownerName}</p>
+                  <p>Booked Duration: ${r.bookingDuration} ${r.bookingDurationType}</p>
+                  <p>Total Amount: ₹${r.bookingPrice}</p>
+                  <p>Status: <span class="status ${statusClass}">${statusText}</span></p>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      document.getElementById('currentRentalsList').innerHTML = renderCurrentList(currentRentals);
+      document.getElementById('rentalHistoryList').innerHTML = renderHistoryList(historyRentals);
+
+    } else {
+      document.getElementById('currentRentalsList').innerHTML = `<p>Failed to load current rentals: ${bookedData.message || 'Unknown error'}</p>`;
+      document.getElementById('rentalHistoryList').innerHTML = `<p>Failed to load rental history: ${ownedData.message || 'Unknown error'}</p>`;
+    }
+
+  } catch(err) {
+    console.error(err);
+    document.getElementById('currentRentalsList').innerHTML = "<p>Error loading data</p>";
+    document.getElementById('rentalHistoryList').innerHTML = "<p>Error loading data</p>";
+  }
+}
+
+async function returnRental(rentalId) {
+  if (!confirm("Are you sure you want to mark this item as returned?")) {
+    return;
+  }
+  try {
+    const res = await fetch(`/api/rentals/return/${rentalId}`, {
+      method: 'PUT',
+      credentials: 'include'
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert("Item marked as returned successfully!");
+      loadDashboard(); // Reload dashboard to update lists
+    } else {
+      alert(data.message || "Failed to mark item as returned.");
+    }
+  } catch (err) {
+    console.error("Error returning rental:", err);
+    alert("Error returning rental. Please try again.");
+  }
+}
+
+loadDashboard();
+</script>
+
+</body>
+</html>

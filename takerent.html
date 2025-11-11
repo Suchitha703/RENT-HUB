@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RentHub – Take on Rent</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; font-family:'Poppins', sans-serif; }
+  body { background:#f5f7fb; color:#333; }
+
+  /* Header */
+  header {
+    background:url('assets/background.jpg') center/cover no-repeat;
+    height:90vh; 
+    display:flex; 
+    align-items:center; 
+    justify-content:center; 
+    position:relative;
+  }
+  header::before {
+    content:""; 
+    position:absolute; 
+    inset:0; 
+    background:rgba(0,0,0,0.55); 
+    z-index:1;
+  }
+  .hero-content { position:relative; text-align:center; color:white; z-index:2; max-width:700px; }
+  .logo { font-size:2.5rem; font-weight:bold; color:#fff; margin-bottom:15px; text-transform:uppercase; }
+  .hero-content h1 { font-size:3rem; margin-bottom:15px; font-weight:700; }
+  .hero-content p { font-size:1.1rem; line-height:1.6; margin-bottom:25px; color:#f0f0f0; }
+  .btn-container { display:flex; justify-content:center; gap:15px; }
+  .btn { padding:12px 25px; border-radius:30px; font-size:1rem; border:2px solid #fff; color:white; font-weight:500; text-decoration:none; transition:0.3s; cursor:pointer; }
+  .btn.secondary:hover { background:white; color:#333; }
+  .btn.secondary { color: #333; background: #fff; border-color: #333; } /* Make text clearly visible */
+
+  /* Search Section */
+  .search-section {
+    background:#fff;
+    max-width:800px;
+    margin: -70px auto 40px; /* slightly above header bottom */
+    padding:25px;
+    border-radius:15px;
+    box-shadow:0 4px 15px rgba(0,0,0,0.1);
+    text-align:center;
+    position:relative;
+    z-index:3; /* above header overlay */
+  }
+  .search-section input {
+    width:80%;
+    padding:12px;
+    border-radius:10px;
+    border:1px solid #ccc;
+    outline:none;
+    font-size:16px;
+  }
+
+  /* Rentals Section */
+  #availableItems { display:flex; flex-wrap:wrap; gap:20px; justify-content:center; margin-bottom:40px; }
+  .rental-card { background:#fff; padding:15px; border-radius:12px; width:220px; box-shadow:0 2px 8px rgba(0,0,0,0.1); display:flex; flex-direction:column; align-items:center; text-align:center; transition:transform 0.2s; }
+  .rental-card:hover { transform:translateY(-5px); }
+  .rental-card img { width:100%; height:120px; object-fit:cover; border-radius:8px; margin:10px 0; }
+  .book-btn { padding:10px 18px; border-radius:8px; background:#ff7e29; color:white; font-weight:500; text-decoration:none; cursor:pointer; transition:0.3s; margin-top:10px; display:inline-block; }
+  .book-btn:hover { background:#ff944d; }
+
+  /* Footer */
+  .footer { text-align:center; margin:50px 0 30px; color:#666; }
+
+  /* Responsive */
+  @media (max-width:600px) {
+    .search-section input { width:100%; }
+    .rental-card { width:45%; }
+  }
+  @media (max-width:400px) {
+    .rental-card { width:90%; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hero-content">
+    <div class="logo">RentHub</div>
+    <h1>Find What You Need, When You Need It</h1>
+    <p>Rent gadgets, vehicles, and more easily. Save money, reduce waste, and enjoy convenience — all in one place.</p>
+    <div class="btn-container">
+      <button class="btn secondary" onclick="goToDashboard()">User Dashboard</button>
+    </div>
+  </div>
+</header>
+
+<section class="search-section">
+  <input type="text" id="searchInput" placeholder="Search items to rent...">
+</section>
+
+<section id="availableRentals">
+  <h2 style="text-align:center; margin-bottom:15px; color:#ff7e29;">Available Rentals</h2>
+  <div id="availableItems"></div>
+</section>
+
+<p class="footer">© 2025 RentHub. All rights reserved.</p>
+
+<script>
+let products = [];
+
+// Dashboard redirect
+async function goToDashboard() {
+  const res = await fetch('/api/session', { credentials: 'include' });
+  const data = await res.json();
+  if(data.loggedIn) window.location.href='/dashboard.html';
+  else { alert('Please login first!'); window.location.href='/sign.html'; }
+}
+
+// Fetch rentals
+async function fetchProducts() {
+  try {
+    const res = await fetch('/api/rentals/available', { credentials: 'include' });
+    const data = await res.json();
+    products = data.map(p => ({
+      ...p,
+      images: p.images ? p.images.map(img => img.startsWith('/uploads/') ? img : '/uploads/' + img) : ['/uploads/default.png']
+    }));
+    renderAvailableRentals(products);
+  } catch (err) {
+    console.error(err);
+    document.getElementById('availableItems').innerHTML = '<p>Error loading rentals.</p>';
+  }
+}
+
+// Render
+function renderAvailableRentals(items) {
+  const container = document.getElementById('availableItems');
+  container.innerHTML = '';
+  if(!items.length){ container.innerHTML='<p>No rentals available.</p>'; return; }
+  items.forEach(p => {
+    const price = p.pricePerDay || p.pricePerHour;
+    const duration = p.pricePerDay ? 'Per Day' : 'Per Hour';
+    container.innerHTML += `
+      <div class="rental-card">
+        <img src="${p.images[0]}" alt="${p.itemTitle}">
+        <h3>${p.itemTitle}</h3>
+        <p>Category: ${p.category || 'N/A'}</p>
+        <p>Price: ₹${price} ${duration}</p>
+        <a href="bookings.html?listingId=${p.id}" class="book-btn">Book</a>
+      </div>
+    `;
+  });
+}
+
+// Search
+document.getElementById("searchInput").addEventListener("input", e=>{
+  const value = e.target.value.toLowerCase();
+  const filtered = products.filter(p => p.itemTitle.toLowerCase().includes(value));
+  renderAvailableRentals(filtered);
+});
+
+fetchProducts();
+</script>
+
+</body>
+</html>

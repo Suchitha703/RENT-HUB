@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard | RentHub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root{
+      --bg:#f5f7fb;
+      --card:#ffffff;
+      --border:#e6eaf3;
+      --text:#1f2937;
+      --muted:#6b7280;
+      --primary:#3b82f6;
+      --success:#10b981;
+      --info:#06b6d4;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;height:100%;font-family:Poppins,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial;background:var(--bg);color:var(--text)}
+
+    .container{max-width:1120px;margin:24px auto;padding:24px;background:var(--card);border-radius:16px;box-shadow:0 10px 24px rgba(15,23,42,0.06)}
+
+    .section-title{display:flex;align-items:center;justify-content:space-between;margin:0 0 18px;border-bottom:2px solid var(--border);padding-bottom:12px;font-weight:700;font-size:22px}
+    .edit-btn{background:var(--primary);color:#fff;border:none;border-radius:8px;padding:10px 16px;font-weight:600;cursor:pointer}
+    .edit-btn:hover{background:#2563eb}
+
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-bottom:20px}
+    .card{background:#fafbff;border:1px solid var(--border);border-radius:12px;padding:18px}
+    .card .label{color:#64748b;font-size:14px;font-weight:600;margin-bottom:8px}
+    .card .value{font-size:18px;font-weight:700}
+
+    .note{background:#fafbff;border:1px solid var(--border);border-radius:12px;padding:18px;color:var(--muted)}
+
+    .search{display:flex;gap:12px;align-items:center;margin:12px 0}
+    .search input{flex:1;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px}
+
+    table{width:100%;border-collapse:collapse}
+    thead th{background:var(--primary);color:#fff;text-align:left;padding:12px;font-weight:600}
+    tbody td{padding:12px;border-bottom:1px solid var(--border);}
+    tr:hover{background:#f8fafc}
+
+    .status{display:inline-block;padding:6px 10px;border-radius:8px;font-weight:700;color:#fff}
+    .status.upcoming{background:var(--info)}
+    .status.rented{background:#9333ea}
+    .status.completed{background:#6b7280}
+    .status.on-processing{background:#ff7e29;}
+
+    /* Improve long text rendering inside value fields */
+    .card .value{font-size:18px;font-weight:600;line-height:1.6;overflow-wrap:anywhere;word-break:break-word;white-space:normal}
+    .card .value a{color:#0f172a;text-decoration:none}
+    .card .value a:hover{text-decoration:underline}
+
+    /* Profile edit form */
+    .profile-form{display:none;margin-bottom:20px}
+    .form-row{margin-bottom:16px}
+    .form-row label{display:block;margin-bottom:8px;font-weight:600;color:#64748b}
+    .form-row input{width:100%;padding:12px;border:1px solid var(--border);border-radius:8px;font-size:16px}
+    .form-actions{display:flex;gap:12px;justify-content:flex-end}
+    .save-btn{background:var(--success);color:#fff;border:none;border-radius:8px;padding:10px 20px;font-weight:600;cursor:pointer}
+    .save-btn:hover{background:#059669}
+    .cancel-btn{background:#f3f4f6;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px 20px;font-weight:600;cursor:pointer}
+    .cancel-btn:hover{background:#e5e7eb}
+
+    @media(max-width:640px){
+      .section-title{font-size:18px}
+    }
+
+    /* Topbar */
+    .topbar{background:var(--primary);color:#fff;display:flex;justify-content:space-between;align-items:center;padding:12px 24px;position:sticky;top:0;z-index:10}
+    .topbar .title{font-weight:700;font-size:20px}
+    .topbar .actions{display:flex;gap:20px}
+    .topbar a{color:#fff;text-decoration:none;font-weight:600}
+    .topbar a:hover{text-decoration:underline}
+
+    /* Email one-line, preserve card outline */
+    #profileEmail{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    #profileEmail a{display:inline-block;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  
+    /* Notification Card Styles */
+    .notification-card {
+      background: #e9f7ef; /* Light green background for new notifications */
+      border-left: 5px solid #28a745; /* Green border */
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .notification-card p {
+      margin: 0;
+      font-size: 1rem;
+      color: var(--text);
+    }
+
+    .notification-card span {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    /* Adjust .note for notifications */
+    #notificationsList .note {
+      text-align: center;
+      padding: 20px;
+      font-size: 1.1rem;
+      color: var(--muted);
+      background: var(--card);
+      border: 1px solid var(--border);
+    }
+
+    /* Modal Styles */
+    .modal {
+      display: none; /* Hidden by default */
+      position: fixed; /* Stay in place */
+      z-index: 1000; /* Sit on top */
+      left: 0;
+      top: 0;
+      width: 100%; /* Full width */
+      height: 100%; /* Full height */
+      overflow: auto; /* Enable scroll if needed */
+      background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+      padding-top: 60px;
+    }
+
+    .modal-content {
+      background-color: #fefefe;
+      margin: 5% auto; /* 15% from the top and centered */
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%; /* Could be more or less, depending on screen size */
+      max-width: 600px;
+      border-radius: 12px;
+      position: relative;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    .close-button {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      position: absolute;
+      top: 10px;
+      right: 20px;
+    }
+
+    .close-button:hover,
+    .close-button:focus {
+      color: black;
+      text-decoration: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="title">RentHub - Rental History</div>
+    <div class="actions">
+      <a href="/addrental.html">Add New Rental</a>
+      <a href="/profile.html">Back to Hub</a>
+      <a href="#" id="logoutLink">Logout</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="section-title">
+      <span>Profile Information</span>
+      <button class="edit-btn" id="editProfileBtn">Edit Profile</button>
+    </div>
+
+    <div class="grid" id="profileGrid">
+      <div class="card"><div class="label">Full Name</div><div class="value" id="profileName">—</div></div>
+      <div class="card"><div class="label">Contact</div><div class="value" id="profilePhone">—</div></div>
+      <div class="card"><div class="label">Email</div><div class="value" id="profileEmail">—</div></div>
+      <div class="card"><div class="label">Address</div><div class="value" id="profileAddress">—</div></div>
+    </div>
+
+    <div class="profile-form" id="profileForm">
+      <div class="form-row"><label for="editName">Full Name</label><input type="text" id="editName" /></div>
+      <div class="form-row"><label for="editPhone">Contact Number</label><input type="text" id="editPhone" /></div>
+      <div class="form-row"><label for="editEmail">Email</label><input type="email" id="editEmail" readonly /></div>
+      <div class="form-row"><label for="editAddress">Address</label><input type="text" id="editAddress" /></div>
+      <div class="form-actions">
+        <button class="cancel-btn" id="cancelEditBtn">Cancel</button>
+        <button class="save-btn" id="saveProfileBtn">Save Profile</button>
+      </div>
+    </div>
+
+    <div class="section-title"><span>Notifications</span></div>
+    <div id="notificationsList">
+      <div class="note">No new notifications.</div>
+    </div>
+
+    <!-- Booking Details Modal -->
+    <div id="bookingDetailsModal" class="modal">
+      <div class="modal-content">
+        <span class="close-button" onclick="closeBookingDetailsModal()">&times;</span>
+        <h2>Booking Details</h2>
+        <div id="modalBookingDetails">
+          <p><strong>Item:</strong> <span id="modalItemTitle"></span></p>
+          <p><strong>Description:</strong> <span id="modalItemDescription"></span></p>
+          <p><strong>Renter Name:</strong> <span id="modalRenterName"></span></p>
+          <p><strong>Renter Email:</strong> <span id="modalRenterEmail"></span></p>
+          <p><strong>Renter Phone:</strong> <span id="modalRenterPhone"></span></p>
+          <p><strong>Duration:</strong> <span id="modalBookingDuration"></span></p>
+          <p><strong>Total Price:</strong> ₹<span id="modalBookingPrice"></span></p>
+          <p><strong>Booking Date:</strong> <span id="modalBookingDate"></span></p>
+          <p><strong>Status:</strong> <span id="modalBookingStatus"></span></p>
+          <button id="confirmBookingBtn" class="book-btn-bottom" style="margin-top: 20px;">Confirm Booking</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title"><span>Rental History</span></div>
+    <div class="search"><input type="text" id="searchInput" placeholder="Search item name..." /></div>
+    <table>
+      <thead>
+        <tr><th>Item name</th><th>Category</th><th>Price/Day (₹)</th><th>Rented From</th><th>Rented To</th><th>Status</th></tr>
+      </thead>
+      <tbody id="historyBody"><tr><td colspan="6" style="text-align:center;color:#64748b">Loading...</td></tr></tbody>
+    </table>
+  </div>
+
+ <script>
+  function fmtDate(d) {
+    if (!d) return '—';
+    const dt = new Date(d);
+    if (Number.isNaN(dt.getTime())) return d;
+    return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+  }
+
+  let currentUser = {};
+  async function loadProfile() {
+    try {
+      const res = await fetch('/api/session', { credentials: 'include' });
+      const data = await res.json();
+      if (!data.loggedIn) return window.location.href = '/home.html';
+      currentUser = data.user || {};
+      document.getElementById('profileName').textContent = currentUser.fullname || '—';
+      document.getElementById('profilePhone').textContent = currentUser.phone || '—';
+      document.getElementById('profileEmail').innerHTML = currentUser.email ? `<a href="mailto:${currentUser.email}">${currentUser.email}</a>` : '—';
+      document.getElementById('profileAddress').textContent = currentUser.city || '—';
+      document.getElementById('editName').value = currentUser.fullname || '';
+      document.getElementById('editPhone').value = currentUser.phone || '';
+      document.getElementById('editEmail').value = currentUser.email || '';
+      document.getElementById('editAddress').value = currentUser.city || '';
+    } catch (e) {
+      console.error('session error', e);
+    }
+  }
+
+  let rentals = [];
+  function renderHistory(list) {
+    const tbody = document.getElementById('historyBody');
+    if (!list || list.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#64748b">No rental history</td></tr>';
+      return;
+    }
+    tbody.innerHTML = list.map(r => {
+      const displayPrice = r.bookingPrice ? `₹${parseFloat(r.bookingPrice).toFixed(2)}` : '—';
+      const displayDurationType = r.durationType || '';
+       let detailedPrice = '—';
+      // Prioritize displaying booking-specific price if available
+      if (r.bookingDuration && r.durationType && r.bookingPrice) {
+        const unitPriceDisplay = 
+          (r.durationType === 'days' && r.pricePerDay) ? `₹${parseFloat(r.pricePerDay).toFixed(2)}/Day` :
+          (r.durationType === 'hours' && r.pricePerHour) ? `₹${parseFloat(r.pricePerHour).toFixed(2)}/Hour` : '';
+        
+        if (unitPriceDisplay) {
+          detailedPrice = `${unitPriceDisplay} (Total: ${displayPrice} for ${r.bookingDuration} ${r.durationType})`;
+        } else {
+          detailedPrice = `Total: ${displayPrice} for ${r.bookingDuration} ${r.durationType}`;
+        }
+      } else if (r.pricePerDay) { // Fallback to base rental price per day
+        detailedPrice = `₹${parseFloat(r.pricePerDay).toFixed(2)}/Day`;
+      } else if (r.pricePerHour) { // Fallback to base rental price per hour
+        detailedPrice = `₹${parseFloat(r.pricePerHour).toFixed(2)}/Hour`;
+      }
+      const status = (r.status === 'Active') ? 'upcoming' : 
+                     (r.status === 'Rented' ? 'rented' : 
+                     (r.status === 'Pending' ? 'on-processing' : 'completed')); // Added 'Pending' to 'on-processing'
+      return `<tr>
+        <td>${r.itemTitle || '—'}</td>
+        <td>${r.category || '—'}</td>
+        <td>${detailedPrice}</td>
+        <td>${fmtDate(r.startDate)}</td>
+        <td>${fmtDate(r.endDate)}</td>
+        <td><span class="status ${status}">${status.charAt(0).toUpperCase() + status.slice(1).replace('-', ' ')}</span></td>
+      </tr>`;
+    }).join('');
+  }
+
+  async function loadHistory() {
+    try {
+      const res = await fetch('/api/rentals/history', { credentials: 'include' });
+      const ct = res.headers.get('content-type') || '';
+      if (!res.ok || !ct.includes('application/json')) {
+        renderHistory([]);
+        return;
+      }
+      const data = await res.json();
+      if (data.success) {
+        rentals = data.rentals || [];
+        renderHistory(rentals);
+      } else {
+        renderHistory([]);
+      }
+    } catch (e) {
+      console.error('history error', e);
+      renderHistory([]);
+    }
+  }
+
+  document.getElementById('searchInput').addEventListener('input', function () {
+    const q = this.value.toLowerCase();
+    const filtered = rentals.filter(r => (r.itemTitle || '').toLowerCase().includes(q));
+    renderHistory(filtered);
+  });
+
+  document.getElementById('editProfileBtn').addEventListener('click', function () {
+    document.getElementById('profileGrid').style.display = 'none';
+    document.getElementById('profileForm').style.display = 'block';
+    document.getElementById('editProfileBtn').style.display = 'none';
+  });
+
+  document.getElementById('cancelEditBtn').addEventListener('click', function () {
+    document.getElementById('profileGrid').style.display = 'grid';
+    document.getElementById('profileForm').style.display = 'none';
+    document.getElementById('editProfileBtn').style.display = 'block';
+  });
+
+  document.getElementById('saveProfileBtn').addEventListener('click', async function () {
+    const updatedProfile = {
+      fullname: document.getElementById('editName').value.trim(),
+      phone: document.getElementById('editPhone').value.trim(),
+      email: currentUser.email,
+      city: document.getElementById('editAddress').value.trim()
+    };
+
+    if (!updatedProfile.fullname || !updatedProfile.phone) {
+      alert('Name and phone number are required.');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/users/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(updatedProfile)
+      });
+
+      const ct = res.headers.get('content-type') || '';
+      const raw = await res.text();
+      console.log('🔍 Raw response:', raw);
+
+      if (!ct.includes('application/json')) {
+        alert('Server returned unexpected response. Check backend logs.');
+        return;
+      }
+
+      const data = JSON.parse(raw);
+      if (data.success) {
+        currentUser = { ...currentUser, ...updatedProfile };
+        document.getElementById('profileName').textContent = currentUser.fullname || '—';
+        document.getElementById('profilePhone').textContent = currentUser.phone || '—';
+        document.getElementById('profileEmail').innerHTML = currentUser.email ? `<a href="mailto:${currentUser.email}">${currentUser.email}</a>` : '—';
+        document.getElementById('profileAddress').textContent = currentUser.city || '—';
+        document.getElementById('profileGrid').style.display = 'grid';
+        document.getElementById('profileForm').style.display = 'none';
+        document.getElementById('editProfileBtn').style.display = 'block';
+        alert('Profile updated successfully!');
+      } else {
+        alert('Failed to update profile: ' + (data.message || 'Unknown error'));
+      }
+    } catch (err) {
+      console.error('Profile update error', err);
+      alert('Error updating profile. Please try again.');
+    }
+  });
+
+  document.getElementById('logoutLink').addEventListener('click', async function (e) {
+    e.preventDefault();
+    try {
+      await fetch('/api/logout', { method: 'POST', credentials: 'include' });
+    } catch (err) {}
+    window.location.href = '/sign.html';
+  });
+
+  // Init
+  loadProfile();
+  loadHistory();
+  
+  // Notifications Logic
+  const notificationsListDiv = document.getElementById('notificationsList');
+
+  async function fetchNotifications() {
+    try {
+      const res = await fetch('/api/notifications', { credentials: 'include' });
+      const data = await res.json();
+
+      if (data.success && data.notifications.length > 0) {
+        // Filter to only show pending requests, not owner confirmations
+        const pendingRequests = data.notifications.filter(n => !n.message.includes('has been confirmed by the owner!'));
+
+        if (pendingRequests.length > 0) {
+          notificationsListDiv.innerHTML = pendingRequests.map(n => `
+            <div class="notification-card" data-renter-id="${n.renterId}" data-booking-id="${n.bookingId}" data-notification-id="${n.id}">
+              <p>${n.message}</p>
+              <span>${new Date(n.createdAt).toLocaleString()}</span>
+              <button class="view-details-btn" onclick="openBookingDetailsModal(${n.bookingId})">View Details</button>
+            </div>
+          `).join('');
+        } else {
+          notificationsListDiv.innerHTML = '<div class="note">No new notifications.</div>';
+        }
+      } else {
+        notificationsListDiv.innerHTML = '<div class="note">No new notifications.</div>';
+      }
+    } catch (err) {
+      console.error("Error fetching notifications:", err);
+      notificationsListDiv.innerHTML = '<div class="note">Error loading notifications.</div>';
+    }
+  }
+  fetchNotifications(); // Call to load notifications on page load
+
+  // Modal Logic for Booking Details
+  const bookingDetailsModal = document.getElementById('bookingDetailsModal');
+  const modalItemTitle = document.getElementById('modalItemTitle');
+  const modalItemDescription = document.getElementById('modalItemDescription');
+  const modalRenterName = document.getElementById('modalRenterName');
+  const modalRenterEmail = document.getElementById('modalRenterEmail');
+  const modalRenterPhone = document.getElementById('modalRenterPhone');
+  const modalBookingDuration = document.getElementById('modalBookingDuration');
+  const modalBookingPrice = document.getElementById('modalBookingPrice');
+  const modalBookingDate = document.getElementById('modalBookingDate');
+  const modalBookingStatus = document.getElementById('modalBookingStatus');
+  const confirmBookingBtn = document.getElementById('confirmBookingBtn');
+
+  async function openBookingDetailsModal(bookingId) {
+    try {
+      const res = await fetch(`/api/booking-details/${bookingId}`, { credentials: 'include' });
+      const data = await res.json();
+
+      if (data.success) {
+        const details = data.bookingDetails;
+        console.log('DEBUG: Booking details received:', details);
+        modalItemTitle.textContent = details.itemTitle;
+        modalItemDescription.textContent = details.itemDescription;
+        modalRenterName.textContent = details.renterName;
+        modalRenterEmail.textContent = details.renterEmail;
+        modalRenterPhone.textContent = details.renterPhone;
+        modalBookingDuration.textContent = details.bookingDuration;
+        modalBookingPrice.textContent = details.bookingPrice;
+        modalBookingDate.textContent = new Date(details.bookingDate).toLocaleString();
+        modalBookingStatus.textContent = details.status || 'Pending'; // Display status
+
+        // Only show confirm button if status is Pending
+        if (details.status === 'Pending') {
+          confirmBookingBtn.style.display = 'block';
+          confirmBookingBtn.onclick = () => finalizeBooking(details.bookingId); // Pass bookingId to finalize function
+        } else {
+          confirmBookingBtn.style.display = 'none';
+        }
+
+        bookingDetailsModal.style.display = 'block';
+
+        // Mark this notification as read
+        const notificationCard = document.querySelector(`.notification-card[data-booking-id="${bookingId}"]`);
+        if (notificationCard) {
+          const notificationId = notificationCard.dataset.notificationId; // Assuming you add data-notification-id to the card
+          if (notificationId) {
+            await fetch(`/api/notifications/mark-read/${notificationId}`, { method: 'PUT', credentials: 'include' });
+            // No need to refresh immediately, fetchNotifications will do it later
+          }
+        }
+
+      } else {
+        alert(data.message || 'Failed to load booking details.');
+      }
+    } catch (err) {
+      console.error("Error fetching booking details:", err);
+      alert('Error loading booking details. Please try again.');
+    }
+  }
+
+  async function finalizeBooking(bookingId) {
+    if (!confirm('Are you sure you want to confirm this booking?')) return;
+
+    try {
+      const res = await fetch(`/api/bookings/finalize/${bookingId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        alert(data.message);
+        closeBookingDetailsModal();
+        fetchNotifications(); // Refresh notifications to update counts and list
+        loadHistory(); // Refresh rental history
+      } else {
+        alert(data.message || 'Failed to confirm booking.');
+      }
+    } catch (err) {
+      console.error('Error finalizing booking:', err);
+      alert('Error confirming booking. Please try again.');
+    }
+  }
+
+  function closeBookingDetailsModal() {
+    bookingDetailsModal.style.display = 'none';
+  }
+
+  window.onclick = function(event) {
+    if (event.target == bookingDetailsModal) {
+      closeBookingDetailsModal();
+    }
+  };
+</script>
+</body>
+</html>

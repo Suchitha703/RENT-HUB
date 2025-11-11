@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Add New Rental | RentHub</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:#f2f4f8; margin:0; }
+    header { background:#007bff; color:#fff; text-align:center; padding:18px 10px; }
+    form { max-width:800px; background:#fff; margin:30px auto; padding:26px; border-radius:10px; box-shadow:0 4px 10px rgba(0,0,0,0.1); }
+    h2 { text-align:center; color:#333; margin:0 0 18px; }
+    h3 { margin:12px 0; }
+    label { font-weight:600; display:block; margin-top:12px; }
+    .required::after { content:" *"; color:red; }
+    input, select, textarea { width:100%; padding:10px; margin-top:6px; border-radius:6px; border:1px solid #ccc; font-size:15px; }
+    label.checkbox-inline { display:flex; align-items:center; gap:8px; }
+    input[type="checkbox"] { width:auto; display:inline-block; margin:0 8px 0 0; }
+    textarea { resize:vertical; }
+    .form-section { margin-bottom:22px; }
+    .note { color:#777; font-size:13px; margin-top:4px; }
+    .price-grid { display:grid; grid-template-columns:1fr 1fr; column-gap:24px; row-gap:12px; }
+    .date-grid { display:grid; grid-template-columns:1fr 1fr; column-gap:24px; row-gap:12px; }
+    .submit-btn { display:block; width:100%; background:#3b82f6; color:#fff; border:none; border-radius:8px; padding:12px; font-size:16px; font-weight:600; cursor:pointer; margin-top:10px; }
+    .image-preview { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+    .image-preview img { width:80px; height:80px; object-fit:cover; border-radius:6px; border:1px solid #ccc; }
+    @media (max-width:600px) { .price-grid, .date-grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>RentHub</h1>
+    <p>Add New Rental Item</p>
+  </header>
+
+  <form id="addRentalForm" enctype="multipart/form-data">
+    <h2>Add New Rental</h2>
+
+    <div class="form-section">
+      <h3>📦 Item Details</h3>
+
+      <label for="images" class="required">Upload Item Images</label>
+      <input type="file" id="images" name="images" multiple accept="image/*">
+      <div class="image-preview" id="imagePreview"></div>
+      <p class="note">You can upload up to 5 images (JPG, PNG).</p>
+
+      <label for="itemTitle" class="required">Item Title</label>
+      <input type="text" id="itemTitle" name="itemTitle" placeholder="e.g. Honda Activa 5G, 1BHK Flat" required>
+
+      <label for="category" class="required">Category</label>
+      <select id="category" name="category" required>
+        <option value="">-- Select Category --</option>
+        <option>Vehicles</option>
+        <option>Houses / Rooms</option>
+        <option>Furniture</option>
+        <option>Electronics</option>
+        <option>Tools & Equipment</option>
+        <option>Others</option>
+      </select>
+
+      <label for="description" class="required">Description</label>
+      <textarea id="description" name="description" rows="4" placeholder="Describe your item (condition, usage, etc.)" required></textarea>
+
+      <div class="price-grid">
+        <div>
+          <label for="pricePerHour">Price per hour (₹)</label>
+          <input type="number" id="pricePerHour" name="pricePerHour" placeholder="Enter price per hour" min="0" step="1">
+        </div>
+        <div>
+          <label for="pricePerDay">Price per day (₹)</label>
+          <input type="number" id="pricePerDay" name="pricePerDay" placeholder="Enter price per day" min="0" step="1">
+        </div>
+      </div>
+
+      <label for="deposit">Security Deposit (₹)</label>
+      <input type="number" id="deposit" name="deposit" placeholder="Optional">
+
+      <div class="date-grid">
+        <div>
+          <label for="startDate" class="required">Available From</label>
+          <input type="date" id="startDate" name="startDate" required>
+        </div>
+        <div>
+          <label for="endDate" class="required">Available Until</label>
+          <input type="date" id="endDate" name="endDate" required>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h3>⚙ Rental Conditions</h3>
+      <label for="conditions">Special Conditions / Notes</label>
+      <textarea id="conditions" name="conditions" rows="3" placeholder="e.g. No long trips, Handle with care"></textarea>
+      <label class="required checkbox-inline"><input type="checkbox" id="tnc" required> I agree to the terms and conditions</label>
+    </div>
+
+    <button type="submit" class="submit-btn">Submit Listing</button>
+  </form>
+
+  
+  <script>
+    const imagesInput = document.getElementById('images');
+    const imagePreview = document.getElementById('imagePreview');
+
+    imagesInput.addEventListener('change', () => {
+      imagePreview.innerHTML = '';
+      const files = Array.from(imagesInput.files).slice(0, 5);
+      files.forEach(file => {
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        imagePreview.appendChild(img);
+      });
+    });
+
+    document.getElementById('addRentalForm').addEventListener('submit', async function(evt) {
+      evt.preventDefault();
+
+      const pricePerHourVal = document.getElementById('pricePerHour').value.trim();
+      const pricePerDayVal = document.getElementById('pricePerDay').value.trim();
+      if (!pricePerHourVal && !pricePerDayVal) {
+        alert('Please enter either Price per hour or Price per day.');
+        return;
+      }
+
+      const start = new Date(document.getElementById('startDate').value);
+      const end = new Date(document.getElementById('endDate').value);
+      if (end < start) {
+        alert('End date must be after the start date.');
+        return;
+      }
+
+      if (!document.getElementById('tnc').checked) {
+        alert('Please agree to terms.');
+        return;
+      }
+
+      let currentUser;
+      try {
+        const res = await fetch('/api/session', { credentials: 'include' });
+        const session = await res.json();
+        if (!session.loggedIn || !session.user) {
+          alert('Please login first!');
+          window.location.href = 'login.html';
+          return;
+        }
+        currentUser = session.user;
+      } catch (err) {
+        console.error('Session check failed:', err);
+        alert('Unable to verify login. Please try again.');
+        return;
+      }
+
+      const formData = new FormData();
+      const images = Array.from(imagesInput.files).slice(0, 5);
+      images.forEach(img => formData.append('images', img));
+
+      formData.append('userId', currentUser.id);
+      formData.append('ownerName', currentUser.fullname);
+      formData.append('contact', currentUser.phone || '');
+      formData.append('email', currentUser.email || '');
+      formData.append('location', currentUser.city || '');
+      formData.append('itemTitle', document.getElementById('itemTitle').value.trim());
+      formData.append('category', document.getElementById('category').value);
+      formData.append('description', document.getElementById('description').value.trim());
+      formData.append('pricePerHour', pricePerHourVal || '');
+      formData.append('pricePerDay', pricePerDayVal || '');
+      formData.append('deposit', document.getElementById('deposit').value.trim() || '');
+      formData.append('startDate', document.getElementById('startDate').value);
+      formData.append('endDate', document.getElementById('endDate').value);
+      formData.append('conditions', document.getElementById('conditions').value.trim());
+      formData.append('status', 'Active');
+
+      try {
+        const response = await fetch('/api/rentals', {
+          method: 'POST',
+          body: formData,
+          credentials: 'include'
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          alert('✅ Your rental listing has been submitted successfully!');
+          document.getElementById('addRentalForm').reset();
+          imagePreview.innerHTML = '';
+          window.location.href = 'dboard.html';
+        } else {
+          alert('❌ ' + (data.message || 'Something went wrong.'));
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Unexpected error while saving your listing.');
+      }
+    });
+  </script>
+</body>
+</html>

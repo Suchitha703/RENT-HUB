@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register | RentHub</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+    body { background: #f2f2f2; display: flex; justify-content: center; align-items: center; height: 100vh; }
+    .form-container { background: #fff; padding: 40px 30px; border-radius: 10px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); width: 350px; }
+    form h2 { text-align: center; margin-bottom: 25px; color: #333; }
+    .input-box { margin-bottom: 15px; }
+    .input-box input { width: 100%; padding: 12px; border-radius: 5px; border: 1px solid #ccc; outline: none; font-size: 14px; }
+    .input-box input:focus { border-color: #00b4d8; }
+    .btn { width: 100%; padding: 12px; background: #00b4d8; border: none; border-radius: 5px; color: #fff; font-size: 16px; cursor: pointer; margin-top: 10px; transition: 0.3s; }
+    .btn:hover { background: #0077b6; }
+    .login-link { text-align: center; margin-top: 15px; font-size: 14px; color: #555; }
+    .login-link a { color: #00b4d8; text-decoration: none; }
+    .login-link a:hover { text-decoration: underline; }
+    .message { padding: 10px; margin-bottom: 15px; border-radius: 5px; text-align: center; display: none; }
+    .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    @media(max-width: 400px) { .form-container { width: 90%; padding: 30px 20px; } }
+  </style>
+</head>
+<body>
+
+<div class="form-container">
+  <div id="message" class="message"></div>
+  <form id="registrationForm">
+    <h2>Register</h2>
+
+    <div class="input-box">
+      <input type="text" id="fullname" name="fullname" placeholder="Full Name" required>
+    </div>
+    <div class="input-box">
+      <input type="email" id="email" name="email" placeholder="Email Address" required>
+    </div>
+    <div class="input-box">
+      <input type="password" id="password" name="password" placeholder="Create Password" required>
+    </div>
+    <div class="input-box">
+      <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm Password" required>
+    </div>
+    <div class="input-box">
+      <input type="text" id="phone" name="phone" placeholder="Phone (optional)">
+    </div>
+
+    <button type="submit" class="btn">Register</button>
+    <p class="login-link">Already have an account? <a href="sign.html">Login</a></p>
+  </form>
+</div>
+
+<script>
+  const registrationForm = document.getElementById('registrationForm');
+  const messageDiv = document.getElementById('message');
+
+  registrationForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const fullname = document.getElementById('fullname').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirm_password').value;
+    const phone = document.getElementById('phone').value.trim();
+
+    if (password !== confirmPassword) {
+      showMessage('Passwords do not match.', 'error');
+      return;
+    }
+
+    if (!fullname || !email || !password) {
+      showMessage('Full Name, Email, and Password are required.', 'error');
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:3000/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fullname, email, password, phone })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        showMessage('Registration successful! Redirecting to login...', 'success');
+        registrationForm.reset();
+        setTimeout(() => { window.location.href = 'sign.html'; }, 1500);
+      } else {
+        showMessage(data.message || 'Registration failed.', 'error');
+      }
+
+    } catch (err) {
+      console.error(err);
+      showMessage('Server error. Please try again.', 'error');
+    }
+  });
+
+  function showMessage(text, type) {
+    messageDiv.textContent = text;
+    messageDiv.className = 'message ' + type;
+    messageDiv.style.display = 'block';
+    if (type === 'success') setTimeout(() => { messageDiv.style.display = 'none'; }, 5000);
+  }
+</script>
+
+</body>
+</html>

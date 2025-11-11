@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RentHub – Booking Details</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<style>
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: #f5f7fb;
+        color: #333;
+        margin: 0;
+        padding: 20px;
+    }
+    .container {
+        max-width: 900px;
+        margin: 20px auto;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        padding: 30px;
+    }
+    .back-btn {
+        background: #6c757d;
+        color: white;
+        border: none;
+        padding: 10px 18px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1rem;
+        margin-bottom: 20px;
+        transition: background-color 0.3s ease;
+    }
+    .back-btn:hover {
+        background-color: #5a6268;
+    }
+    .item-header {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 30px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 20px;
+    }
+    .item-image-container {
+        flex-shrink: 0;
+        width: 200px;
+        height: 150px;
+        overflow: hidden;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .item-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .item-title-section h1 {
+        font-size: 2.2rem;
+        color: #ff7e29;
+        margin: 0 0 10px 0;
+    }
+    .item-title-section p {
+        font-size: 1rem;
+        color: #666;
+        margin: 0;
+    }
+    .details-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 25px;
+        margin-top: 30px;
+    }
+    .detail-card {
+        background: #f9f9f9;
+        border: 1px solid #eee;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .detail-card h3 {
+        color: #007bff;
+        font-size: 1.2rem;
+        margin-top: 0;
+        margin-bottom: 15px;
+    }
+    .detail-card p {
+        margin-bottom: 10px;
+        line-height: 1.6;
+    }
+    .detail-card p strong {
+        color: #555;
+    }
+    .book-btn-bottom {
+        display: block;
+        width: 100%;
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-top: 40px;
+        transition: background-color 0.3s ease;
+    }
+    .book-btn-bottom:hover {
+        background-color: #218838;
+    }
+
+    /* CSS for the Booking Modal */
+    .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 1; /* Sit on top */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: auto;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        width: 80%;
+        max-width: 500px;
+        position: relative;
+        text-align: center;
+    }
+
+    .close-button {
+        color: #aaa;
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .close-button:hover,
+    .close-button:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .duration-options label {
+        margin: 0 10px;
+        font-weight: 500;
+    }
+
+    #durationInput {
+        width: calc(100% - 40px);
+        padding: 10px 15px;
+        margin: 20px 0;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 1rem;
+    }
+
+    .confirm-booking-btn {
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: background-color 0.3s ease;
+    }
+
+    .confirm-booking-btn:hover {
+        background-color: #218838;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i> Back</button>
+
+  <div id="rentalDetails">
+    <!-- Dynamic content will be loaded here by JavaScript -->
+  </div>
+
+  <button class="book-btn-bottom" id="bookItemBtn" onclick="openBookingModal()" style="display: none;">Book Item Now</button>
+</div>
+
+<!-- Booking Modal -->
+<div id="bookingModal" class="modal">
+  <div class="modal-content">
+    <span class="close-button" onclick="closeBookingModal()">&times;</span>
+    <h3>Confirm Your Booking</h3>
+    <p>Select rental duration type:</p>
+    <div class="duration-options">
+      <input type="radio" id="rentByDays" name="durationType" value="days" checked>
+      <label for="rentByDays">Days</label>
+      <input type="radio" id="rentByHours" name="durationType" value="hours">
+      <label for="rentByHours">Hours</label>
+    </div>
+    <input type="number" id="durationInput" placeholder="Enter number of days/hours" min="1" required>
+    <p><strong>Total Amount:</strong> <span id="totalAmount">₹0.00</span></p>
+    <button class="confirm-booking-btn" onclick="confirmBooking()">Confirm Booking</button>
+  </div>
+</div>
+
+<script>
+function goBack(){ window.history.back(); }
+
+const params = new URLSearchParams(window.location.search);
+const listingId = params.get('listingId');
+const rentalDetailsDiv = document.getElementById('rentalDetails');
+const bookItemBtn = document.getElementById('bookItemBtn'); // Get the new book button
+let currentRentalData = null; // To store fetched rental data
+const bookingModal = document.getElementById('bookingModal');
+const durationInput = document.getElementById('durationInput');
+const rentByDaysRadio = document.getElementById('rentByDays');
+const rentByHoursRadio = document.getElementById('rentByHours');
+const totalAmountSpan = document.getElementById('totalAmount'); // Get the total amount span
+
+if (!listingId) {
+  rentalDetailsDiv.innerHTML = '<p>Invalid listing.</p>';
+} else {
+  fetch(`/api/rentals/${listingId}`, { credentials: 'include' })
+    .then(res => res.json())
+    .then(data => {
+      if (!data.success) {
+        rentalDetailsDiv.innerHTML = `<p>${data.message || 'Error loading rental details.'}</p>`;
+        return;
+      }
+      currentRentalData = data.rental;
+      const rental = currentRentalData;
+
+      const itemImage = rental.images && rental.images.length ? `<img src="${rental.images[0]}" alt="${rental.itemTitle}" class="item-image">` : '';
+      const pricePerHour = rental.pricePerHour ? `₹${rental.pricePerHour}` : 'N/A';
+      const pricePerDay = rental.pricePerDay ? `₹${rental.pricePerDay}` : 'N/A';
+      const securityDeposit = rental.deposit ? `₹${rental.deposit}` : 'N/A';
+      const availableFrom = rental.startDate ? new Date(rental.startDate).toLocaleDateString() : 'N/A';
+      const availableUntil = rental.endDate ? new Date(rental.endDate).toLocaleDateString() : 'N/A';
+      const conditions = rental.conditions || 'N/A';
+
+      rentalDetailsDiv.innerHTML = `
+        <div class="item-header">
+          <div class="item-image-container">
+            ${itemImage}
+          </div>
+          <div class="item-title-section">
+            <h1>${rental.itemTitle}</h1>
+            <p>Category: ${rental.category || 'N/A'}</p>
+          </div>
+        </div>
+
+        <div class="details-grid">
+          <div class="detail-card">
+            <h3>Item Information</h3>
+        <p><strong>Description:</strong> ${rental.description || 'No description'}</p>
+            <p><strong>Price per Hour:</strong> ${pricePerHour}</p>
+            <p><strong>Price per Day:</strong> ${pricePerDay}</p>
+            <p><strong>Security Deposit:</strong> ${securityDeposit}</p>
+            <p><strong>Available From:</strong> ${availableFrom}</p>
+            <p><strong>Available Until:</strong> ${availableUntil}</p>
+            <p><strong>Conditions:</strong> ${conditions}</p>
+          </div>
+          <div class="detail-card">
+        <h3>Owner Information</h3>
+            <p><strong>Owner Name:</strong> ${rental.ownerName || 'N/A'}</p>
+            <p><strong>Contact Phone:</strong> ${rental.contact || 'N/A'}</p>
+            <p><strong>Contact Email:</strong> ${rental.email || 'N/A'}</p>
+          </div>
+        </div>
+      `;
+      bookItemBtn.style.display = 'block'; // Show book button once data is loaded
+    })
+    .catch(err => {
+      rentalDetailsDiv.innerHTML = '<p>Error loading rental details.</p>';
+      console.error(err);
+    });
+}
+
+// Functions for modal
+function openBookingModal() {
+  if (!currentRentalData) {
+    alert("Rental data not loaded. Please try again.");
+    return;
+  }
+  bookingModal.style.display = 'flex';
+  // Set initial state based on available pricing
+  if (currentRentalData.pricePerDay && !currentRentalData.pricePerHour) {
+    rentByDaysRadio.checked = true;
+    durationInput.placeholder = "Enter number of days";
+  } else if (!currentRentalData.pricePerDay && currentRentalData.pricePerHour) {
+    rentByHoursRadio.checked = true;
+    durationInput.placeholder = "Enter number of hours";
+  } else {
+    // Both or neither available, default to days
+    rentByDaysRadio.checked = true;
+    durationInput.placeholder = "Enter number of days";
+  }
+
+  // Update placeholder based on radio selection
+  rentByDaysRadio.onchange = () => { durationInput.placeholder = "Enter number of days"; updateTotalAmount(); };
+  rentByHoursRadio.onchange = () => { durationInput.placeholder = "Enter number of hours"; updateTotalAmount(); };
+  durationInput.oninput = updateTotalAmount; // Update on input change
+
+  updateTotalAmount(); // Initial calculation when modal opens
+}
+
+function closeBookingModal() {
+  bookingModal.style.display = 'none';
+}
+
+function updateTotalAmount() {
+  if (!currentRentalData) return;
+
+  const durationType = document.querySelector('input[name="durationType"]:checked').value;
+  let duration = parseInt(durationInput.value);
+  let calculatedPrice = 0;
+
+  // Calculate max available days
+  let maxAvailableDays = Infinity;
+  if (currentRentalData.startDate && currentRentalData.endDate) {
+    const startDate = new Date(currentRentalData.startDate);
+    const endDate = new Date(currentRentalData.endDate);
+    const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+    maxAvailableDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // Correctly calculate days
+  }
+  const maxAvailableHours = maxAvailableDays * 24; // Calculate max hours
+
+  if (!isNaN(duration) && duration > 0) {
+    // Duration validation
+    if (durationType === 'days' && duration > maxAvailableDays) {
+      alert(`This item is only available for a maximum of ${maxAvailableDays} day(s).`);
+      durationInput.value = maxAvailableDays; // Reset to max available
+      duration = maxAvailableDays; // Update duration for calculation
+    } else if (durationType === 'hours' && duration > maxAvailableHours) {
+      alert(`This item is only available for a maximum of ${maxAvailableHours} hour(s) (which is ${maxAvailableDays} day(s)).`);
+      durationInput.value = maxAvailableHours; // Reset to max available
+      duration = maxAvailableHours; // Update duration for calculation
+    }
+
+    if (durationType === 'days' && currentRentalData.pricePerDay) {
+      calculatedPrice = currentRentalData.pricePerDay * duration;
+    } else if (durationType === 'hours' && currentRentalData.pricePerHour) {
+      calculatedPrice = currentRentalData.pricePerHour * duration;
+    } else {
+      if (durationType === 'days' && !currentRentalData.pricePerDay) {
+        alert("This item is not available for rental by day.");
+      } else if (durationType === 'hours' && !currentRentalData.pricePerHour) {
+        alert("This item is not available for rental by hour.");
+      }
+    }
+  }
+  totalAmountSpan.textContent = `₹${calculatedPrice.toFixed(2)}`;
+}
+
+async function confirmBooking() {
+  const durationType = document.querySelector('input[name="durationType"]:checked').value;
+  const duration = parseInt(durationInput.value);
+  const totalAmount = parseFloat(totalAmountSpan.textContent.replace('₹', ''));
+
+  if (isNaN(duration) || duration <= 0) {
+    alert("Please enter a valid number for duration.");
+    return;
+  }
+
+  // Re-validate duration against availability before confirming
+  let maxAvailableDays = Infinity;
+  if (currentRentalData.startDate && currentRentalData.endDate) {
+    const startDate = new Date(currentRentalData.startDate);
+    const endDate = new Date(currentRentalData.endDate);
+    const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+    maxAvailableDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  }
+  const maxAvailableHours = maxAvailableDays * 24; // Calculate max hours
+
+  if (durationType === 'days' && duration > maxAvailableDays) {
+    alert(`Cannot book for more than ${maxAvailableDays} day(s). Please adjust duration.`);
+    return;
+  } else if (durationType === 'hours' && duration > maxAvailableHours) {
+    alert(`Cannot book for more than ${maxAvailableHours} hour(s) (which is ${maxAvailableDays} day(s)). Please adjust duration.`);
+    return;
+  }
+
+  if (totalAmount <= 0) {
+    alert("Total amount cannot be zero. Please check duration and pricing.");
+    return;
+  }
+
+  const listingIdToBook = currentRentalData.id;
+
+  try {
+    const res = await fetch('/api/bookings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ listingId: listingIdToBook, durationType, duration, price: totalAmount })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      alert(data.message); // This will now display the message from the server: "Booking request sent to owner for confirmation!"
+      closeBookingModal();
+    } else {
+      alert(data.message || 'Failed to send booking request.'); // Updated message
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Error booking rental.');
+  }
+}
+
+
+// Initial bookRental function now opens modal
+function bookRental() { // Renamed from bookRental() to openBookingModal() in onclick
+  openBookingModal();
+}
+</script>
+
+</body>
+</html>

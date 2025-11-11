@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In | RentHub</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+    body { background: #f2f2f2; display: flex; justify-content: center; align-items: center; height: 100vh; }
+    .form-container { background: #fff; padding: 40px 30px; border-radius: 10px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); width: 350px; }
+    form h2 { text-align: center; margin-bottom: 25px; color: #333; }
+    .input-box { margin-bottom: 15px; }
+    .input-box input { width: 100%; padding: 12px; border-radius: 5px; border: 1px solid #ccc; outline: none; font-size: 14px; }
+    .input-box input:focus { border-color: #00b4d8; }
+    .btn { width: 100%; padding: 12px; background: #00b4d8; border: none; border-radius: 5px; color: #fff; font-size: 16px; cursor: pointer; margin-top: 10px; transition: 0.3s; }
+    .btn:hover { background: #0077b6; }
+    .register-link { text-align: center; margin-top: 15px; font-size: 14px; color: #555; }
+    .register-link a { color: #00b4d8; text-decoration: none; }
+    .register-link a:hover { text-decoration: underline; }
+    .message { text-align: center; margin-top: 10px; font-size: 14px; }
+    @media(max-width: 400px) { .form-container { width: 90%; padding: 30px 20px; } }
+  </style>
+</head>
+<body>
+
+<div class="form-container">
+  <form id="loginForm">
+    <h2>Sign In</h2>
+    <div class="input-box">
+      <input type="email" id="email" name="email" placeholder="Email Address" required>
+    </div>
+    <div class="input-box">
+      <input type="password" id="password" name="password" placeholder="Password" required>
+    </div>
+    <button type="submit" class="btn">Login</button>
+    <p class="register-link">Don't have an account? <a href="registration.html">Register</a></p>
+    <p id="message" class="message"></p>
+  </form>
+</div>
+
+<script>
+  const loginForm = document.getElementById('loginForm');
+  const messageEl = document.getElementById('message');
+
+  loginForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+
+    if(!email || !password){
+      messageEl.style.color = '#c62828';
+      messageEl.textContent = 'Please enter email and password.';
+      return;
+    }
+
+    try {
+      // ✅ Use relative path & include credentials for cookies
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // <-- IMPORTANT: allows session cookies
+        body: JSON.stringify({ email, password })
+      });
+
+      if (!response.ok) throw new Error(`HTTP error ${response.status}`);
+
+      const data = await response.json();
+
+      if (data.success) {
+        // ✅ Save user locally too (optional)
+        if (data.user) sessionStorage.setItem('currentUser', JSON.stringify(data.user));
+
+        messageEl.style.color = '#2e7d32';
+        messageEl.textContent = 'Login successful! Redirecting...';
+
+        // ✅ Redirect to main take-rent page after login
+        setTimeout(() => { window.location.href = '/profile.html'; }, 1000);
+      } else {
+        messageEl.style.color = '#c62828';
+        messageEl.textContent = data.message || 'Invalid credentials.';
+      }
+
+    } catch(err) {
+      console.error(err);
+      messageEl.style.color = '#c62828';
+      messageEl.textContent = 'Server error. Please try again.';
+    }
+  });
+</script>
+
+</body>
+</html>

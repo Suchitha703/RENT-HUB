@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RentHub - Home</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#f6f8fb;
+      --card:#ffffff;
+      --accent:#4f46e5;
+      --muted:#6b7280;
+      --radius:16px;
+      --container:1100px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,'Helvetica Neue',Arial;color:#0f172a;background:var(--bg)}
+    .container{max-width:var(--container);margin:0 auto;padding:32px;text-align:center}
+
+    .hero-card{background:linear-gradient(180deg,rgba(255,255,255,0.9),rgba(255,255,255,0.8));border-radius:20px;padding:60px;box-shadow:0 8px 30px rgba(15,23,42,0.06);max-width:700px;margin:100px auto}
+    h1{font-size:36px;margin:6px 0 14px;line-height:1.2}
+    p.lead{color:var(--muted);font-size:16px;margin:0 0 24px}
+    .hero-ctas{display:flex;justify-content:center;gap:20px;flex-wrap:wrap}
+
+    footer{margin-top:60px;padding-top:24px;border-top:1px solid #eef2f6;color:var(--muted);display:flex;justify-content:center;align-items:center;flex-wrap:wrap}
+
+    @media (max-width:760px){
+      .container{padding:20px}
+      .hero-card{padding:30px}
+      h1{font-size:28px}
+    }
+
+    .btn {
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      padding: 12px 28px;
+    }
+    .btn-primary { background: var(--accent); color: white; border: none; }
+    .btn-primary:hover { background: #4338ca; }
+    .btn-ghost { background: transparent; color: var(--accent); border: 2px solid var(--accent); }
+    .btn-ghost:hover { background: var(--accent); color: white; }
+
+    .topbar {
+      background: var(--accent);
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .topbar .title {
+      font-weight: 700;
+      font-size: 20px;
+    }
+    .topbar .actions {
+      display: flex;
+      gap: 20px;
+    }
+    .topbar a {
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+      position: relative; /* For badge positioning */
+    }
+    .topbar a:hover {
+      text-decoration: underline;
+    }
+    .notification-badge {
+      position: absolute;
+      top: -8px;
+      right: -15px;
+      background-color: #ef4444; /* Red color */
+      color: white;
+      border-radius: 50%;
+      padding: 2px 7px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      line-height: 1;
+      min-width: 20px; /* Ensures circular shape for single/double digits */
+      text-align: center;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="title">RentHub</div>
+    <div class="actions">
+      <a href="/home.html">Home</a>
+      <a href="/dboard.html">Notifications <span id="notificationCount" class="notification-badge" style="display: none;"></span></a>
+      <a href="/dashboard.html">Messages <span id="messageCount" class="notification-badge" style="display: none;"></span></a>
+      <a href="#" id="logoutLink">Logout</a>
+    </div>
+  </div>
+  <div class="container">
+    <section class="hero">
+      <div class="hero-card">
+        <h1>Find the Perfect Items to Rent or Share Yours</h1>
+        <p class="lead">Connect owners and renters in one place. Save money, save time, and make life easier.</p>
+        <div class="hero-ctas">
+          <a href="dboard.html" id="giveOnRentLink" class="btn btn-primary">Give on Rent</a>
+          <a href="takerent.html" class="btn btn-ghost">Take on Rent</a>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div>RENTHUB - Your One Stop Rental Platform</div>
+    </footer>
+  </div>
+
+  <script>
+    (function(){
+      const giveLink = document.getElementById('giveOnRentLink');
+
+      giveLink.addEventListener('click', async function(e){
+        e.preventDefault();
+
+        try {
+          const response = await fetch('/api/check-user-listing', {
+            method: 'GET',
+            credentials: 'include'
+          });
+
+          const data = await response.json();
+
+          if(data.hasListing){
+            window.location.href = '/dboard.html';
+          } else {
+            window.location.href = '/addrental.html';
+          }
+
+        } catch(err){
+          console.error('Error checking listings:', err);
+          window.location.href = '/addrental.html';
+        }
+      });
+    })();
+
+    document.getElementById('logoutLink').addEventListener('click', async function(e) {
+      e.preventDefault();
+      try {
+        await fetch('/api/logout', { method: 'POST', credentials: 'include' });
+      } catch (err) {}
+      window.location.href = '/sign.html';
+    });
+
+    async function fetchNotificationCount() {
+      try {
+        const res = await fetch('/api/notifications/unread-count', { credentials: 'include' });
+        const data = await res.json();
+        const notificationCountSpan = document.getElementById('notificationCount');
+        if (data.success && data.unreadCount > 0) {
+          notificationCountSpan.textContent = data.unreadCount;
+          notificationCountSpan.style.display = 'inline-block';
+        } else {
+          notificationCountSpan.style.display = 'none';
+        }
+      } catch (err) {
+        console.error('Error fetching notification count:', err);
+        document.getElementById('notificationCount').style.display = 'none';
+      }
+    }
+
+    async function fetchMessageCount() {
+      try {
+        const res = await fetch('/api/messages/unread-count', { credentials: 'include' });
+        const data = await res.json();
+        const messageCountSpan = document.getElementById('messageCount');
+        if (data.success && data.unreadCount > 0) {
+          messageCountSpan.textContent = data.unreadCount;
+          messageCountSpan.style.display = 'inline-block';
+        } else {
+          messageCountSpan.style.display = 'none';
+        }
+      } catch (err) {
+        console.error('Error fetching message count:', err);
+        document.getElementById('messageCount').style.display = 'none';
+      }
+    }
+
+    // Fetch counts on page load
+    fetchNotificationCount();
+    fetchMessageCount();
+
+    // Refresh counts every 30 seconds
+    setInterval(fetchNotificationCount, 30000);
+    setInterval(fetchMessageCount, 30000);
+
+  </script>
+</body>
+</html>
